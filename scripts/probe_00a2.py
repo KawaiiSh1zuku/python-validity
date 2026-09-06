@@ -71,8 +71,9 @@ def _is_reboot(e):
 
 def main():
     init_data_dir()
-    init_flash()
-    usb.open()                       # finds 06cb:00a2 (now a SupportedDevice)
+    usb.open()                       # MUST open the device before any command
+    init_flash()                     # early-returns if flash already has partitions
+                                     # (a Windows-prepared 00a2 returns here)
     usb.send_init()                  # sends init_hardcoded (reused from blobs_90)
     tls.parse_tls_flash(read_tls_flash())
     tls.open()
