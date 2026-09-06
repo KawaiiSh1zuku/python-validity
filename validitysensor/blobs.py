@@ -12,11 +12,13 @@ def __load_blob(blob: str) -> bytes:
         if usb.usb_dev().idProduct == 0x009a:
             from . import blobs_9a as blobs
         elif usb.usb_dev().idProduct == 0x00a2:
-            # 06cb:00a2 uses the same synaWudfBioUsb.dll as 138a:0090 (the DLL
-            # does not branch on VID/PID at all), so it is the 0090 protocol
-            # class and reuses the 0090 init/reset blobs. Do NOT use blobs_9a
-            # here: 009a is a different driver package / fwext family.
-            from . import blobs_90 as blobs
+            # 06cb:00a2 (Synaptics Metallica MOH) needs its OWN init/reset/
+            # write-enable blobs (blobs_a2.py), extracted from Windows USB
+            # traffic by the community (dmitriy-myz/python-validity, add-a2
+            # branch). It must NOT reuse blobs_90: the 0090 db_write_enable is
+            # accepted by the device (returns 0x0000) but does NOT actually
+            # enable writes, so erase/write then fail with 0x04af.
+            from . import blobs_a2 as blobs
 
     globals()[blob] = getattr(blobs, blob)
     return globals()[blob]
