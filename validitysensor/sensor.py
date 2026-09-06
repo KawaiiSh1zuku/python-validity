@@ -237,8 +237,14 @@ class Sensor:
             self.calibration_frames = 6  # TODO: workout where it's really comming from
             self.calibration_iterations = 0
         else:
-            raise Exception('Device %s is not supported (sensor type 0x%x)' %
-                            (self.device_info.name, self.device_info.type))
+            raise Exception(
+                'Device %s is not supported (sensor type 0x%x, major=0x%04x, minor=0x%04x).\n'
+                'Only types 0x199 and 0xdb have known calibration parameters yet.\n'
+                'Run: sudo python3 scripts/probe_00a2.py  (after placing the fwext in\n'
+                '/var/run/python-validity/) and report the printed sensor type so the\n'
+                'calibration values for this type can be added.'
+                % (self.device_info.name, self.device_info.type,
+                   self.device_info.major, self.device_info.version))
 
         self.rom_info = RomInfo.get()
         self.hardcoded_prog = SensorCaptureProg.get(self.rom_info, self.device_info.type, 0x18,

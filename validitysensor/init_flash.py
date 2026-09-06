@@ -137,6 +137,14 @@ def init_flash():
     layout = flash_layout_hardcoded
     signature = partition_signature
 
+    # NOTE on 06cb:00a2: it is VID 0x06cb, so it falls through to the default
+    # layout/signature (same family as 9a/97/9d), NOT the 0090-specific one.
+    # The 0090 layout uses a smaller template DB (0x30000 vs 0x80000) because
+    # that hardware has a smaller flash chip. 00a2's flash size is unverified,
+    # so we keep the default here. This whole block only runs on a device with
+    # NO partitions yet (factory-fresh); a Windows-prepared 00a2 returns early
+    # above, so this is safe for the normal case. If you ever factory-reset a
+    # 00a2 and init fails, try the 0090 layout/signature here.
     if usb.usb_dev().idVendor == 0x138a:
         if usb.usb_dev().idProduct == 0x0090:
             layout = flash_layout_hardcoded_0090
