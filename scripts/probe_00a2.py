@@ -65,12 +65,31 @@ from validitysensor.sensor import identify_sensor, RomInfo, RebootException
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 
+def _reset_device():
+    """Force a USB-bus-level reset so the chip leaves any leftover TLS/secure
+    session and comes back in plaintext mode. Needed because a SIGKILLed
+    service does not run its atexit reboot."""
+    import time
+    import usb.core as ucore
+
+    dev = ucore.find(idVendor=0x06cb, idProduct=0x00a2)
+    if dev is None:
+        raise SystemExit('06cb:00a2 not found on the USB bus')
+    try:
+        dev.reset()
+        logging.info('USB device reset issued; waiting for re-enumeration...')
+    except Exception as e:
+        logging.warning('USB reset failed (%s); continuing anyway', e)
+    time.sleep(2.5)
+
+
 def _is_reboot(e):
     return isinstance(e, RebootException) or 'Reboot' in str(e)
 
 
 def main():
     init_data_dir()
+    _reset_device()
     usb.open()                       # MUST open the device before any command
     init_flash()                     # early-returns if flash already has partitions
                                      # (a Windows-prepared 00a2 returns here)

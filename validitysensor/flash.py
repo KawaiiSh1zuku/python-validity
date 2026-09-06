@@ -1,3 +1,4 @@
+import logging
 import typing
 from struct import pack, unpack
 
@@ -123,7 +124,18 @@ def call_cleanups():
 def erase_flash(partition: int):
     assert_status(tls.cmd(db_write_enable))
     try:
-        assert_status(tls.cmd(pack('<BB', 0x3f, partition)))
+        rsp = tls.cmd(pack('<BB', 0x3f, partition))
+        err = unpack('<H', rsp[:2])[0]
+        # 0x04af: partition is already empty. Seen on 06cb:00a2 when erasing a
+        # freshly-created partition (its data area is still 0xFF). 0090 returns
+        # 0x0000 here; 00a2's firmware returns 0x04af to say "nothing to erase".
+        # Treat it as success, mirroring how call_cleanups tolerates 0x0491
+        # ("nothing to commit"). Without this, init_flash aborts right after
+        # partition_flash and the device is left uninitialized.
+        if err == 0x04af:
+            logging.info('erase partition %d: 0x04af (already empty), continuing', partition)
+        else:
+            assert_status(rsp)
     finally:
         call_cleanups()
 
