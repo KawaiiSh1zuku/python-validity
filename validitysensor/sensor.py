@@ -240,9 +240,12 @@ class Sensor:
             raise Exception(
                 'Device %s is not supported (sensor type 0x%x, major=0x%04x, minor=0x%04x).\n'
                 'Only types 0x199 and 0xdb have known calibration parameters yet.\n'
-                'Run: sudo python3 scripts/probe_00a2.py  (after placing the fwext in\n'
-                '/var/run/python-validity/) and report the printed sensor type so the\n'
-                'calibration values for this type can be added.'
+                'Run the probe to learn the type (place 6_07f_lenovo_sm_qm.xpfwext in\n'
+                '/var/run/python-validity/ first):\n'
+                '  source tree : sudo python3 scripts/probe_00a2.py\n'
+                '  installed   : sudo python3 /usr/share/python-validity/probe_00a2.py\n'
+                'Then report the printed sensor type so the calibration values for it\n'
+                'can be added to Sensor.open() in sensor.py.'
                 % (self.device_info.name, self.device_info.type,
                    self.device_info.major, self.device_info.version))
 
